@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 using namespace std;
 
@@ -7,55 +8,41 @@ int main() {
   ifstream fin("cownomics.in");
   ofstream fout("cownomics.out");
 
-  int n, m, ans = 0;
+  size_t n, m, ans{0};
   fin >> n >> m;
   vector<string> genes(n * 2);
   for (auto &s : genes) {
     fin >> s;
   }
 
-  for (int j = 0; j < m; j++) {
-    bool as = false, cs = false, gs = false, ts = false;
-    bool ap = false, cp = false, gp = false, tp = false;
-    for (int i = 0; i < n; i++) {
-      if (genes[i][j] == 'A' && !as) {
-        as = true;
+  for (size_t i = 0; i < m - 2; i++) {
+    for (size_t j = i + 1; j < m - 1; j++) {
+      for (size_t k = j + 1; k < m; k++) {
+        if (i == j || j == k || k == i)
+          continue;
+        unordered_set<string> spotty;
+        unordered_set<string> plain;
+        bool contains = false;
+        for (size_t s = 0; s < n; s++) {
+          const auto &gene = genes[s];
+          spotty.insert(string{gene[i], gene[j], gene[k]});
+        }
+        for (size_t p = n; p < n * 2; p++) {
+          const auto &gene = genes[p];
+          plain.insert(string{gene[i], gene[j], gene[k]});
+        }
+        for (const auto &gene : spotty) {
+          if (plain.contains(gene) && !contains) {
+            contains = true;
+            break;
+          }
+        }
+        if (contains) {
+          continue;
+        } else {
+          ans++;
+        }
       }
-      if (genes[i][j] == 'G' && !gs) {
-        gs = true;
-      }
-      if (genes[i][j] == 'C' && !cs) {
-        cs = true;
-      }
-      if (genes[i][j] == 'T' && !ts) {
-        ts = true;
-      }
-      if (as && cs && gs && ts) {
-        break;
-      }
-    }
-    if (as && cs && gs && ts) {
-      continue;
-    }
-    for (int i = n; i < n * 2; i++) {
-      if (genes[i][j] == 'A' && !ap) {
-        ap = true;
-      }
-      if (genes[i][j] == 'G' && !gp) {
-        gp = true;
-      }
-      if (genes[i][j] == 'C' && !cp) {
-        cp = true;
-      }
-      if (genes[i][j] == 'T' && !tp) {
-        tp = true;
-      }
-      if (ap && cp && gp && tp) {
-        break;
-      }
-    }
-    if (!(as && ap) && !(cs && cp) && !(gs && gp) && !(ts && tp)) {
-      ans++;
     }
   }
 
